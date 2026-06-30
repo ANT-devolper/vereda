@@ -1,6 +1,10 @@
 package dev.vereda.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import dev.vereda.data.BibleContentDatabase
 import dev.vereda.data.BibleReadingRepository
@@ -12,6 +16,10 @@ import dev.vereda.data.StreakRepository
 import dev.vereda.data.VeredaDatabase
 import dev.vereda.progress.BibleCatalog
 import dev.vereda.progress.PortugueseBibleCatalog
+import dev.vereda.settings.DefaultOnboardingRepository
+import dev.vereda.settings.DefaultReminderRepository
+import dev.vereda.settings.OnboardingRepository
+import dev.vereda.settings.ReminderRepository
 
 /** Application-wide dependencies, resolved manually (no DI framework for now). */
 interface AppContainer {
@@ -19,6 +27,8 @@ interface AppContainer {
     val progressRepository: ProgressRepository
     val bibleReadingRepository: BibleReadingRepository
     val bibleCatalog: BibleCatalog
+    val reminderRepository: ReminderRepository
+    val onboardingRepository: OnboardingRepository
 }
 
 /** Builds the Room-backed repositories used in production. */
@@ -36,9 +46,17 @@ class DefaultAppContainer(
             .build()
     }
 
+    private val dataStore: DataStore<Preferences> by lazy {
+        PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile("settings") })
+    }
+
     private val catalog = PortugueseBibleCatalog()
 
     override val bibleCatalog: BibleCatalog get() = catalog
+
+    override val reminderRepository: ReminderRepository by lazy { DefaultReminderRepository(dataStore) }
+
+    override val onboardingRepository: OnboardingRepository by lazy { DefaultOnboardingRepository(dataStore) }
 
     override val streakRepository: StreakRepository by lazy {
         DefaultStreakRepository(dao = database.dailyActivityDao())
