@@ -35,4 +35,15 @@ class DefaultAppContainerTest {
 
             assertEquals(1, container.streakRepository.currentStreak().current)
         }
+
+    @Test
+    fun `reading repository loads a chapter from the bundled Bible`() =
+        runBlocking {
+            val container = DefaultAppContainer(context)
+
+            val chapter = container.bibleReadingRepository.chapter(bookId = 1, chapter = 1)
+
+            assertEquals("Gênesis", chapter.bookName)
+            assertEquals(31, chapter.verses.size)
+        }
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -17,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.vereda.ui.theme.VeredaTheme
 import kotlin.math.roundToInt
 
@@ -25,15 +25,17 @@ import kotlin.math.roundToInt
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel,
+    onContinueReading: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(state = state, modifier = modifier)
+    HomeScreen(state = state, onContinueReading = onContinueReading, modifier = modifier)
 }
 
 @Composable
 fun HomeScreen(
     state: HomeUiState,
+    onContinueReading: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (state.isLoading) {
@@ -61,6 +63,12 @@ fun HomeScreen(
             chaptersRead = state.chaptersRead,
             totalChapters = state.totalChapters,
         )
+        Button(
+            onClick = onContinueReading,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(text = "Continuar leitura")
+        }
     }
 }
 
@@ -125,6 +133,7 @@ private fun HomeScreenPreview() {
                     chaptersRead = 119,
                     totalChapters = 1189,
                 ),
+            onContinueReading = {},
         )
     }
 }
