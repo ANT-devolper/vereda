@@ -64,10 +64,29 @@ class HomeViewModelTest {
             assertEquals(1189, state.totalChapters)
             assertEquals(119f / 1189f, state.overallFraction, 0.0001f)
         }
+
+    @Test
+    fun `refresh reloads streak and progress after they change`() =
+        runTest {
+            val streakRepository = FakeStreakRepository(StreakResult(current = 1, best = 1))
+            val progressRepository = FakeProgressRepository(OverallProgress(chaptersRead = 10, totalChapters = 1189))
+            val viewModel = HomeViewModel(streakRepository, progressRepository)
+            advanceUntilIdle()
+
+            streakRepository.result = StreakResult(current = 2, best = 2)
+            progressRepository.overall = OverallProgress(chaptersRead = 11, totalChapters = 1189)
+            viewModel.refresh()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(2, state.currentStreak)
+            assertEquals(2, state.bestStreak)
+            assertEquals(11, state.chaptersRead)
+        }
 }
 
 private class FakeStreakRepository(
-    private val result: StreakResult,
+    var result: StreakResult,
 ) : StreakRepository {
     override suspend fun recordChapterCompleted() = Unit
 
@@ -75,7 +94,7 @@ private class FakeStreakRepository(
 }
 
 private class FakeProgressRepository(
-    private val overall: OverallProgress,
+    var overall: OverallProgress,
     private val books: List<BookProgress> = emptyList(),
 ) : ProgressRepository {
     override suspend fun markChapterRead(
