@@ -4,7 +4,10 @@ import java.time.LocalDate
 import java.util.SortedSet
 
 /** Current and best reading streaks, in consecutive days. */
-data class StreakResult(val current: Int, val best: Int)
+data class StreakResult(
+    val current: Int,
+    val best: Int,
+)
 
 /**
  * Computes reading streaks from the set of dates that have at least one completed chapter.
@@ -13,8 +16,10 @@ data class StreakResult(val current: Int, val best: Int)
  * deterministic and easy to test. See [StreakCalculator.calculate] for the rules.
  */
 class StreakCalculator {
-
-    fun calculate(activityDates: Collection<LocalDate>, today: LocalDate): StreakResult {
+    fun calculate(
+        activityDates: Collection<LocalDate>,
+        today: LocalDate,
+    ): StreakResult {
         val days = activityDates.toSortedSet()
         if (days.isEmpty()) return StreakResult(current = 0, best = 0)
 
@@ -28,12 +33,16 @@ class StreakCalculator {
      * Counts consecutive days ending today, or ending yesterday when today has no activity yet
      * (the streak is still alive). Returns 0 when both today and yesterday are missing.
      */
-    private fun currentStreak(days: SortedSet<LocalDate>, today: LocalDate): Int {
-        val anchor = when {
-            today in days -> today
-            today.minusDays(1) in days -> today.minusDays(1)
-            else -> return 0
-        }
+    private fun currentStreak(
+        days: SortedSet<LocalDate>,
+        today: LocalDate,
+    ): Int {
+        val anchor =
+            when {
+                today in days -> today
+                today.minusDays(1) in days -> today.minusDays(1)
+                else -> return 0
+            }
 
         var streak = 0
         var day = anchor

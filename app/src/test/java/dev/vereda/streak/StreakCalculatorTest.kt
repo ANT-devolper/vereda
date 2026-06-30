@@ -13,7 +13,6 @@ import java.time.LocalDate
  * - The best streak is the longest run of consecutive days ever recorded.
  */
 class StreakCalculatorTest {
-
     private val calculator = StreakCalculator()
     private val today = LocalDate.of(2026, 6, 29)
 
@@ -65,16 +64,17 @@ class StreakCalculatorTest {
 
     @Test
     fun `a gap breaks the run and best streak reflects the longest past run`() {
-        val dates = setOf(
-            // current run: yesterday + today = 2
-            today,
-            today.minusDays(1),
-            // older run of 4 consecutive days
-            today.minusDays(5),
-            today.minusDays(6),
-            today.minusDays(7),
-            today.minusDays(8),
-        )
+        val dates =
+            setOf(
+                // current run: yesterday + today = 2
+                today,
+                today.minusDays(1),
+                // older run of 4 consecutive days
+                today.minusDays(5),
+                today.minusDays(6),
+                today.minusDays(7),
+                today.minusDays(8),
+            )
 
         val result = calculator.calculate(activityDates = dates, today = today)
 
@@ -84,13 +84,14 @@ class StreakCalculatorTest {
 
     @Test
     fun `duplicate and unordered dates are handled`() {
-        val dates = listOf(
-            today.minusDays(2),
-            today,
-            today,
-            today.minusDays(1),
-            today.minusDays(1),
-        )
+        val dates =
+            listOf(
+                today.minusDays(2),
+                today,
+                today,
+                today.minusDays(1),
+                today.minusDays(1),
+            )
 
         val result = calculator.calculate(activityDates = dates, today = today)
 
