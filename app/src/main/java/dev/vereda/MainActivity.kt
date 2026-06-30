@@ -7,41 +7,40 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.vereda.ui.home.HomeRoute
+import dev.vereda.ui.home.HomeViewModel
 import dev.vereda.ui.theme.VeredaTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val container = (application as VeredaApplication).container
         setContent {
             VeredaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Vereda",
+                    val homeViewModel: HomeViewModel =
+                        viewModel(
+                            factory =
+                                viewModelFactory {
+                                    initializer {
+                                        HomeViewModel(
+                                            streakRepository = container.streakRepository,
+                                            progressRepository = container.progressRepository,
+                                        )
+                                    }
+                                },
+                        )
+                    HomeRoute(
+                        viewModel = homeViewModel,
                         modifier = Modifier.padding(innerPadding),
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(
-    name: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(text = "Welcome to $name", modifier = modifier)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    VeredaTheme {
-        Greeting("Vereda")
     }
 }

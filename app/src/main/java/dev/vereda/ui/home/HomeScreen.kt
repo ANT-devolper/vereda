@@ -23,9 +23,12 @@ import kotlin.math.roundToInt
 
 /** Home screen: shows the reading streak and overall progress. */
 @Composable
-fun HomeRoute(viewModel: HomeViewModel) {
+fun HomeRoute(
+    viewModel: HomeViewModel,
+    modifier: Modifier = Modifier,
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(state = state)
+    HomeScreen(state = state, modifier = modifier)
 }
 
 @Composable
