@@ -4,6 +4,11 @@ agp = "9.2.1"
 kotlin = "2.2.10"
 ktlintGradle = "14.2.0"
 ktlint = "1.8.0"
+room = "2.8.4"
+# KSP version is tied to the Kotlin version (2.2.10) bundled by AGP.
+ksp = "2.2.10-2.0.2"
+robolectric = "4.16.1"
+testCore = "1.7.0"
 # core-ktx 1.19.0 requires compileSdk 37 (not yet released); 1.18.0 supports compileSdk 36.
 coreKtx = "1.18.0"
 # lifecycle 2.11.0 requires compileSdk 37 (not yet released); 2.10.0 supports compileSdk 36.
@@ -28,12 +33,18 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "testCore" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
 [plugins]
 # AGP 9 provides built-in Kotlin support, so the kotlin-android plugin is not applied.
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
