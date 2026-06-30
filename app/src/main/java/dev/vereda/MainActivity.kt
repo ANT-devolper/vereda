@@ -5,14 +5,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,12 +29,15 @@ import dev.vereda.ui.chapters.ChaptersRoute
 import dev.vereda.ui.chapters.ChaptersViewModel
 import dev.vereda.ui.home.HomeRoute
 import dev.vereda.ui.home.HomeViewModel
+import dev.vereda.ui.onboarding.OnboardingRoute
+import dev.vereda.ui.onboarding.OnboardingViewModel
 import dev.vereda.ui.reading.ReadingRoute
 import dev.vereda.ui.reading.ReadingViewModel
 import dev.vereda.ui.settings.RemindersRoute
 import dev.vereda.ui.settings.RemindersViewModel
 import dev.vereda.ui.theme.VeredaTheme
 
+private const val ROUTE_ONBOARDING = "onboarding"
 private const val ROUTE_HOME = "home"
 private const val ROUTE_BOOKS = "books"
 private const val ROUTE_CHAPTERS = "chapters"
@@ -51,25 +58,54 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Top-level UI: drills down Home → books → chapters → reading.
+ * Top-level UI: first run shows onboarding, then drills down Home → books → chapters → reading.
  *
  * Navigation is a lightweight in-Activity state machine for now; Navigation Compose will be adopted
  * once the back stack grows richer. Each forward step bumps a reload token so a screen re-reads
- * progress when revisited (e.g. after completing a chapter).
+ * progress when revisited (e.g. after completing a chapter). The start route is `null` until the
+ * onboarding-completed flag is read.
  */
 @Composable
 private fun VeredaApp(container: AppContainer) {
-    var route by rememberSaveable { mutableStateOf(ROUTE_HOME) }
+    var route by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedBookId by rememberSaveable { mutableStateOf(-1) }
     var selectedChapter by rememberSaveable { mutableStateOf(-1) }
     var booksToken by rememberSaveable { mutableStateOf(0) }
     var chaptersToken by rememberSaveable { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        if (route == null) {
+            route = if (container.onboardingRepository.isCompleted()) ROUTE_HOME else ROUTE_ONBOARDING
+        }
+    }
 
     val homeViewModel: HomeViewModel = viewModel(factory = homeViewModelFactory(container))
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         val contentModifier = Modifier.padding(innerPadding)
         when (route) {
+            null -> {
+                Box(
+                    modifier = contentModifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            ROUTE_ONBOARDING -> {
+                val onboardingViewModel: OnboardingViewModel =
+                    viewModel(factory = onboardingViewModelFactory(container))
+                OnboardingRoute(
+                    viewModel = onboardingViewModel,
+                    onFinished = {
+                        route = ROUTE_HOME
+                        homeViewModel.refresh()
+                    },
+                    modifier = contentModifier,
+                )
+            }
+
             ROUTE_BOOKS -> {
                 val booksViewModel: BooksViewModel =
                     viewModel(key = "books-$booksToken", factory = booksViewModelFactory(container))
@@ -164,6 +200,16 @@ private fun remindersViewModelFactory(container: AppContainer): ViewModelProvide
     viewModelFactory {
         initializer {
             RemindersViewModel(reminderRepository = container.reminderRepository)
+        }
+    }
+
+private fun onboardingViewModelFactory(container: AppContainer): ViewModelProvider.Factory =
+    viewModelFactory {
+        initializer {
+            OnboardingViewModel(
+                reminderRepository = container.reminderRepository,
+                onboardingRepository = container.onboardingRepository,
+            )
         }
     }
 
