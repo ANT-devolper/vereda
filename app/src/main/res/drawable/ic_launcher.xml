@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#6650A4"
+        android:pathData="M0,0h108v108h-108z" />
+    <!-- Stylized path/trail ("vereda" means "path"). -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,24c-10,0 -16,8 -16,16s6,14 16,20c10,6 16,12 16,20s-6,12 -16,12v-8c4,0 8,-2 8,-6s-4,-8 -12,-12c-10,-6 -16,-12 -16,-22s8,-22 20,-22z" />
+</vector>
