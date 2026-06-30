@@ -61,8 +61,8 @@ This project follows **test-driven development**:
   progress per book and overall.
 - **Reminders:** the user manually manages **up to 3 daily reminders** (each a time of day, repeated
   daily); reminders are added, edited and removed in a **Settings** screen. There is no fixed/single
-  reminder. *(Actually scheduling and firing the notifications — AlarmManager + boot reschedule — is a
-  future iteration; for now reminders are only configured and persisted.)*
+  reminder. Saving reminders schedules them as inexact daily alarms (AlarmManager) that post a local
+  notification; alarms are re-scheduled after reboot via a `BOOT_COMPLETED` receiver.
 - **No account/login** (offline-first). Onboarding (first run) seeds the initial reminders (one suggested
   time, editable) and requests notification permission.
 
