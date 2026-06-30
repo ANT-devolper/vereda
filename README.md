@@ -1,1 +1,84 @@
-# vereda
+# Vereda
+
+A native **Android** app for gamified Bible reading, inspired by Duolingo. Read at least one chapter a day,
+keep your daily **streak** alive, and get a reminder so you never miss it. Vereda is **offline-first**: your
+progress lives on your device and the Bible text is bundled with the app — no account, no internet required.
+
+> **Status:** early development. The project structure and features described below are being built
+> incrementally following TDD (see [CLAUDE.md](CLAUDE.md)).
+
+## Features (MVP)
+
+- 📖 Free navigation through the Bible (pick any book and chapter).
+- ✅ Mark a chapter as completed once you scroll to its end.
+- 🔥 Daily streak with current and best streak counters.
+- 📊 Reading progress per book and overall.
+- ⏰ Local daily reminder notification at a time you choose.
+- 📴 Works fully offline.
+
+## Tech stack
+
+Kotlin · Jetpack Compose · Material 3 · MVVM · Room · DataStore · WorkManager / AlarmManager.
+
+## Getting started
+
+### Prerequisites
+
+You need a **JDK (17+)** and the **Android SDK**. The easiest way to get both is to install
+**[Android Studio](https://developer.android.com/studio)**, which bundles the SDK and a compatible JDK.
+
+#### Install Android Studio
+
+- **Windows:** download the `.exe` installer from the link above and follow the wizard.
+- **macOS:** download the `.dmg` (choose Apple Silicon or Intel) and drag Android Studio to Applications.
+- **Linux:** download the `.tar.gz`, extract it, and run `studio.sh` from the `bin/` folder. On Debian/Ubuntu
+  you may alternatively use `sudo snap install android-studio --classic`.
+
+On first launch, let the setup wizard install the Android SDK, platform tools, and an emulator image.
+
+> **WSL2 note:** building Android apps from inside WSL2 is uncommon. Prefer running Android Studio on
+> Windows/macOS/Linux directly. A physical device or the bundled emulator is needed to run the app.
+
+### Clone
+
+```bash
+git clone https://github.com/<owner>/vereda.git
+cd vereda
+```
+
+### Build and run
+
+Open the project in Android Studio and press **Run** (it provisions the Gradle wrapper automatically), or
+use the command line:
+
+```bash
+# Linux / macOS
+./gradlew assembleDebug      # build a debug APK
+./gradlew installDebug       # build and install on a connected device/emulator
+```
+
+```bat
+REM Windows
+gradlew.bat assembleDebug
+gradlew.bat installDebug
+```
+
+## Testing and linting
+
+```bash
+./gradlew test                  # unit tests (JUnit)
+./gradlew connectedAndroidTest  # instrumented / Compose UI tests (needs a device/emulator)
+./gradlew ktlintCheck           # lint
+./gradlew ktlintFormat          # auto-format
+```
+
+On Windows, use `gradlew.bat` instead of `./gradlew`.
+
+## Contributing
+
+This is an open-source project. Please follow the conventions in [CLAUDE.md](CLAUDE.md):
+
+- **English** for all code, docs, comments, and commit messages.
+- **TDD**: write a failing test first, make it pass, then refactor. Bugs start with a regression test.
+- **Conventional Commits**, kept **atomic and small**.
+- Before opening a PR: tests green, code reviewed, linter clean.
