@@ -1,5 +1,6 @@
 package dev.vereda.ui.onboarding
 
+import dev.vereda.reminders.ReminderScheduler
 import dev.vereda.settings.OnboardingRepository
 import dev.vereda.settings.ReminderRepository
 import kotlinx.coroutines.Dispatchers
@@ -31,10 +32,12 @@ class OnboardingViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private val scheduler = FakeReminderScheduler()
+
     private fun viewModel(
         reminders: FakeReminderRepository = FakeReminderRepository(),
         onboarding: FakeOnboardingRepository = FakeOnboardingRepository(),
-    ) = OnboardingViewModel(reminders, onboarding)
+    ) = OnboardingViewModel(reminders, onboarding, scheduler)
 
     @Test
     fun `starts with a single suggested reminder at 8am`() {
@@ -68,8 +71,21 @@ class OnboardingViewModelTest {
 
             assertTrue(viewModel.uiState.value.isFinished)
             assertEquals(listOf(LocalTime.of(8, 0), LocalTime.of(20, 0)), reminders.stored)
+            assertEquals(listOf(LocalTime.of(8, 0), LocalTime.of(20, 0)), scheduler.scheduled)
             assertTrue(onboarding.completed)
         }
+}
+
+private class FakeReminderScheduler : ReminderScheduler {
+    var scheduled: List<LocalTime> = emptyList()
+
+    override fun schedule(times: List<LocalTime>) {
+        scheduled = times
+    }
+
+    override fun cancelAll() {
+        scheduled = emptyList()
+    }
 }
 
 private class FakeReminderRepository(

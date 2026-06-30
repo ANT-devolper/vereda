@@ -2,6 +2,7 @@ package dev.vereda.ui.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.vereda.reminders.ReminderScheduler
 import dev.vereda.settings.MAX_REMINDERS
 import dev.vereda.settings.OnboardingRepository
 import dev.vereda.settings.ReminderEditing
@@ -24,6 +25,7 @@ data class OnboardingUiState(
 class OnboardingViewModel(
     private val reminderRepository: ReminderRepository,
     private val onboardingRepository: OnboardingRepository,
+    private val reminderScheduler: ReminderScheduler,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
@@ -40,7 +42,9 @@ class OnboardingViewModel(
     /** Persists the chosen reminders and marks onboarding as completed. */
     fun finish() {
         viewModelScope.launch {
-            reminderRepository.setReminders(_uiState.value.reminders)
+            val reminders = _uiState.value.reminders
+            reminderRepository.setReminders(reminders)
+            reminderScheduler.schedule(reminders)
             onboardingRepository.complete()
             _uiState.value = _uiState.value.copy(isFinished = true)
         }

@@ -16,6 +16,8 @@ import dev.vereda.data.StreakRepository
 import dev.vereda.data.VeredaDatabase
 import dev.vereda.progress.BibleCatalog
 import dev.vereda.progress.PortugueseBibleCatalog
+import dev.vereda.reminders.AlarmReminderScheduler
+import dev.vereda.reminders.ReminderScheduler
 import dev.vereda.settings.DefaultOnboardingRepository
 import dev.vereda.settings.DefaultReminderRepository
 import dev.vereda.settings.OnboardingRepository
@@ -29,6 +31,7 @@ interface AppContainer {
     val bibleCatalog: BibleCatalog
     val reminderRepository: ReminderRepository
     val onboardingRepository: OnboardingRepository
+    val reminderScheduler: ReminderScheduler
 }
 
 /** Builds the Room-backed repositories used in production. */
@@ -57,6 +60,8 @@ class DefaultAppContainer(
     override val reminderRepository: ReminderRepository by lazy { DefaultReminderRepository(dataStore) }
 
     override val onboardingRepository: OnboardingRepository by lazy { DefaultOnboardingRepository(dataStore) }
+
+    override val reminderScheduler: ReminderScheduler by lazy { AlarmReminderScheduler(context) }
 
     override val streakRepository: StreakRepository by lazy {
         DefaultStreakRepository(dao = database.dailyActivityDao())

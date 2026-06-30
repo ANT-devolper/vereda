@@ -2,6 +2,7 @@ package dev.vereda.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.vereda.reminders.ReminderScheduler
 import dev.vereda.settings.MAX_REMINDERS
 import dev.vereda.settings.ReminderEditing
 import dev.vereda.settings.ReminderRepository
@@ -22,6 +23,7 @@ data class RemindersUiState(
 /** Loads and edits the user's daily reminders, persisting every change. */
 class RemindersViewModel(
     private val reminderRepository: ReminderRepository,
+    private val reminderScheduler: ReminderScheduler,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RemindersUiState())
     val uiState: StateFlow<RemindersUiState> = _uiState.asStateFlow()
@@ -43,6 +45,9 @@ class RemindersViewModel(
 
     private fun persist(updated: List<LocalTime>) {
         _uiState.value = _uiState.value.copy(reminders = updated)
-        viewModelScope.launch { reminderRepository.setReminders(updated) }
+        viewModelScope.launch {
+            reminderRepository.setReminders(updated)
+            reminderScheduler.schedule(updated)
+        }
     }
 }

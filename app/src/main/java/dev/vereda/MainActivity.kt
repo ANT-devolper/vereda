@@ -199,7 +199,10 @@ private fun booksViewModelFactory(container: AppContainer): ViewModelProvider.Fa
 private fun remindersViewModelFactory(container: AppContainer): ViewModelProvider.Factory =
     viewModelFactory {
         initializer {
-            RemindersViewModel(reminderRepository = container.reminderRepository)
+            RemindersViewModel(
+                reminderRepository = container.reminderRepository,
+                reminderScheduler = container.reminderScheduler,
+            )
         }
     }
 
@@ -209,6 +212,7 @@ private fun onboardingViewModelFactory(container: AppContainer): ViewModelProvid
             OnboardingViewModel(
                 reminderRepository = container.reminderRepository,
                 onboardingRepository = container.onboardingRepository,
+                reminderScheduler = container.reminderScheduler,
             )
         }
     }

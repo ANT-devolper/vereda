@@ -3,6 +3,8 @@
 
     <!-- Needed to show the daily reading reminders (runtime-requested on Android 13+). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Needed to re-schedule the reminder alarms after the device reboots. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".VeredaApplication"
@@ -25,6 +27,14 @@
         <receiver
             android:name=".reminders.ReminderReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".reminders.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package dev.vereda.ui.settings
 
+import dev.vereda.reminders.ReminderScheduler
 import dev.vereda.settings.ReminderRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,6 +20,7 @@ import java.time.LocalTime
 @OptIn(ExperimentalCoroutinesApi::class)
 class RemindersViewModelTest {
     private val dispatcher = StandardTestDispatcher()
+    private val scheduler = FakeReminderScheduler()
 
     @Before
     fun setUp() {
@@ -33,7 +35,7 @@ class RemindersViewModelTest {
     @Test
     fun `starts in a loading state`() =
         runTest {
-            val viewModel = RemindersViewModel(FakeReminderRepository())
+            val viewModel = RemindersViewModel(FakeReminderRepository(), scheduler)
 
             assertTrue(viewModel.uiState.value.isLoading)
         }
@@ -42,7 +44,10 @@ class RemindersViewModelTest {
     fun `loads the stored reminders`() =
         runTest {
             val viewModel =
-                RemindersViewModel(FakeReminderRepository(mutableListOf(LocalTime.of(8, 0), LocalTime.of(20, 0))))
+                RemindersViewModel(
+                    FakeReminderRepository(mutableListOf(LocalTime.of(8, 0), LocalTime.of(20, 0))),
+                    scheduler,
+                )
 
             advanceUntilIdle()
 
@@ -56,7 +61,7 @@ class RemindersViewModelTest {
     fun `adding reminders persists them and caps at three`() =
         runTest {
             val repository = FakeReminderRepository()
-            val viewModel = RemindersViewModel(repository)
+            val viewModel = RemindersViewModel(repository, scheduler)
             advanceUntilIdle()
 
             viewModel.addReminder(LocalTime.of(9, 0))
@@ -69,13 +74,14 @@ class RemindersViewModelTest {
             assertEquals(listOf(LocalTime.of(7, 0), LocalTime.of(9, 0), LocalTime.of(18, 0)), state.reminders)
             assertFalse(state.canAddMore)
             assertEquals(listOf(LocalTime.of(7, 0), LocalTime.of(9, 0), LocalTime.of(18, 0)), repository.stored)
+            assertEquals(listOf(LocalTime.of(7, 0), LocalTime.of(9, 0), LocalTime.of(18, 0)), scheduler.scheduled)
         }
 
     @Test
     fun `removing a reminder persists the change`() =
         runTest {
             val repository = FakeReminderRepository(mutableListOf(LocalTime.of(8, 0), LocalTime.of(20, 0)))
-            val viewModel = RemindersViewModel(repository)
+            val viewModel = RemindersViewModel(repository, scheduler)
             advanceUntilIdle()
 
             viewModel.removeReminder(LocalTime.of(8, 0))
@@ -89,7 +95,7 @@ class RemindersViewModelTest {
     fun `updating a reminder persists the change`() =
         runTest {
             val repository = FakeReminderRepository(mutableListOf(LocalTime.of(8, 0), LocalTime.of(20, 0)))
-            val viewModel = RemindersViewModel(repository)
+            val viewModel = RemindersViewModel(repository, scheduler)
             advanceUntilIdle()
 
             viewModel.updateReminder(index = 0, time = LocalTime.of(22, 0))
@@ -107,5 +113,17 @@ private class FakeReminderRepository(
 
     override suspend fun setReminders(times: List<LocalTime>) {
         stored = times.toMutableList()
+    }
+}
+
+private class FakeReminderScheduler : ReminderScheduler {
+    var scheduled: List<LocalTime> = emptyList()
+
+    override fun schedule(times: List<LocalTime>) {
+        scheduled = times
+    }
+
+    override fun cancelAll() {
+        scheduled = emptyList()
     }
 }
