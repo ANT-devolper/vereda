@@ -19,11 +19,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.vereda.di.AppContainer
+import dev.vereda.ui.books.BooksRoute
+import dev.vereda.ui.books.BooksViewModel
+import dev.vereda.ui.chapters.ChaptersRoute
+import dev.vereda.ui.chapters.ChaptersViewModel
 import dev.vereda.ui.home.HomeRoute
 import dev.vereda.ui.home.HomeViewModel
 import dev.vereda.ui.reading.ReadingRoute
 import dev.vereda.ui.reading.ReadingViewModel
 import dev.vereda.ui.theme.VeredaTheme
+
+private const val ROUTE_HOME = "home"
+private const val ROUTE_BOOKS = "books"
+private const val ROUTE_CHAPTERS = "chapters"
+private const val ROUTE_READING = "reading"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,42 +48,86 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Top-level UI: shows the Home screen and, while reading, the reading screen for a chapter.
+ * Top-level UI: drills down Home → books → chapters → reading.
  *
- * Navigation is a lightweight in-Activity state switch for now; Navigation Compose will be adopted
- * once the book list and chapter grid screens (with a real back stack) are added.
+ * Navigation is a lightweight in-Activity state machine for now; Navigation Compose will be adopted
+ * once the back stack grows richer. Each forward step bumps a reload token so a screen re-reads
+ * progress when revisited (e.g. after completing a chapter).
  */
 @Composable
 private fun VeredaApp(container: AppContainer) {
-    // Negative book id means "on the Home screen"; otherwise we are reading that chapter.
-    var readingBookId by rememberSaveable { mutableStateOf(-1) }
-    var readingChapter by rememberSaveable { mutableStateOf(-1) }
+    var route by rememberSaveable { mutableStateOf(ROUTE_HOME) }
+    var selectedBookId by rememberSaveable { mutableStateOf(-1) }
+    var selectedChapter by rememberSaveable { mutableStateOf(-1) }
+    var booksToken by rememberSaveable { mutableStateOf(0) }
+    var chaptersToken by rememberSaveable { mutableStateOf(0) }
 
     val homeViewModel: HomeViewModel = viewModel(factory = homeViewModelFactory(container))
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         val contentModifier = Modifier.padding(innerPadding)
-        if (readingBookId > 0) {
-            val readingViewModel: ReadingViewModel =
-                viewModel(
-                    key = "reading-$readingBookId-$readingChapter",
-                    factory = readingViewModelFactory(container, readingBookId, readingChapter),
+        when (route) {
+            ROUTE_BOOKS -> {
+                val booksViewModel: BooksViewModel =
+                    viewModel(key = "books-$booksToken", factory = booksViewModelFactory(container))
+                BackHandler {
+                    route = ROUTE_HOME
+                    homeViewModel.refresh()
+                }
+                BooksRoute(
+                    viewModel = booksViewModel,
+                    onBookClick = { bookId ->
+                        selectedBookId = bookId
+                        chaptersToken++
+                        route = ROUTE_CHAPTERS
+                    },
+                    modifier = contentModifier,
                 )
-            BackHandler {
-                readingBookId = -1
-                homeViewModel.refresh()
             }
-            ReadingRoute(viewModel = readingViewModel, modifier = contentModifier)
-        } else {
-            HomeRoute(
-                viewModel = homeViewModel,
-                // Placeholder entry point until the book navigation screen lands: open Genesis 1.
-                onContinueReading = {
-                    readingBookId = 1
-                    readingChapter = 1
-                },
-                modifier = contentModifier,
-            )
+
+            ROUTE_CHAPTERS -> {
+                val chaptersViewModel: ChaptersViewModel =
+                    viewModel(
+                        key = "chapters-$selectedBookId-$chaptersToken",
+                        factory = chaptersViewModelFactory(container, selectedBookId),
+                    )
+                BackHandler {
+                    booksToken++
+                    route = ROUTE_BOOKS
+                }
+                ChaptersRoute(
+                    viewModel = chaptersViewModel,
+                    onChapterClick = { chapter ->
+                        selectedChapter = chapter
+                        route = ROUTE_READING
+                    },
+                    modifier = contentModifier,
+                )
+            }
+
+            ROUTE_READING -> {
+                val readingViewModel: ReadingViewModel =
+                    viewModel(
+                        key = "reading-$selectedBookId-$selectedChapter",
+                        factory = readingViewModelFactory(container, selectedBookId, selectedChapter),
+                    )
+                BackHandler {
+                    chaptersToken++
+                    route = ROUTE_CHAPTERS
+                }
+                ReadingRoute(viewModel = readingViewModel, modifier = contentModifier)
+            }
+
+            else -> {
+                HomeRoute(
+                    viewModel = homeViewModel,
+                    onChooseReading = {
+                        booksToken++
+                        route = ROUTE_BOOKS
+                    },
+                    modifier = contentModifier,
+                )
+            }
         }
     }
 }
@@ -84,6 +137,27 @@ private fun homeViewModelFactory(container: AppContainer): ViewModelProvider.Fac
         initializer {
             HomeViewModel(
                 streakRepository = container.streakRepository,
+                progressRepository = container.progressRepository,
+            )
+        }
+    }
+
+private fun booksViewModelFactory(container: AppContainer): ViewModelProvider.Factory =
+    viewModelFactory {
+        initializer {
+            BooksViewModel(progressRepository = container.progressRepository)
+        }
+    }
+
+private fun chaptersViewModelFactory(
+    container: AppContainer,
+    bookId: Int,
+): ViewModelProvider.Factory =
+    viewModelFactory {
+        initializer {
+            ChaptersViewModel(
+                bookId = bookId,
+                catalog = container.bibleCatalog,
                 progressRepository = container.progressRepository,
             )
         }

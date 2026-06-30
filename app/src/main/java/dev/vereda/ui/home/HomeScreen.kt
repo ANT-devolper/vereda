@@ -25,17 +25,17 @@ import kotlin.math.roundToInt
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel,
-    onContinueReading: () -> Unit,
+    onChooseReading: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(state = state, onContinueReading = onContinueReading, modifier = modifier)
+    HomeScreen(state = state, onChooseReading = onChooseReading, modifier = modifier)
 }
 
 @Composable
 fun HomeScreen(
     state: HomeUiState,
-    onContinueReading: () -> Unit,
+    onChooseReading: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (state.isLoading) {
@@ -64,10 +64,10 @@ fun HomeScreen(
             totalChapters = state.totalChapters,
         )
         Button(
-            onClick = onContinueReading,
+            onClick = onChooseReading,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(text = "Continuar leitura")
+            Text(text = "Escolher leitura")
         }
     }
 }
@@ -133,7 +133,7 @@ private fun HomeScreenPreview() {
                     chaptersRead = 119,
                     totalChapters = 1189,
                 ),
-            onContinueReading = {},
+            onChooseReading = {},
         )
     }
 }

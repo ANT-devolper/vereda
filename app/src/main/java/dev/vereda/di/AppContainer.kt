@@ -10,6 +10,7 @@ import dev.vereda.data.DefaultStreakRepository
 import dev.vereda.data.ProgressRepository
 import dev.vereda.data.StreakRepository
 import dev.vereda.data.VeredaDatabase
+import dev.vereda.progress.BibleCatalog
 import dev.vereda.progress.PortugueseBibleCatalog
 
 /** Application-wide dependencies, resolved manually (no DI framework for now). */
@@ -17,6 +18,7 @@ interface AppContainer {
     val streakRepository: StreakRepository
     val progressRepository: ProgressRepository
     val bibleReadingRepository: BibleReadingRepository
+    val bibleCatalog: BibleCatalog
 }
 
 /** Builds the Room-backed repositories used in production. */
@@ -35,6 +37,8 @@ class DefaultAppContainer(
     }
 
     private val catalog = PortugueseBibleCatalog()
+
+    override val bibleCatalog: BibleCatalog get() = catalog
 
     override val streakRepository: StreakRepository by lazy {
         DefaultStreakRepository(dao = database.dailyActivityDao())
