@@ -11,6 +11,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -26,16 +27,23 @@ import kotlin.math.roundToInt
 fun HomeRoute(
     viewModel: HomeViewModel,
     onChooseReading: () -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(state = state, onChooseReading = onChooseReading, modifier = modifier)
+    HomeScreen(
+        state = state,
+        onChooseReading = onChooseReading,
+        onOpenSettings = onOpenSettings,
+        modifier = modifier,
+    )
 }
 
 @Composable
 fun HomeScreen(
     state: HomeUiState,
     onChooseReading: () -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (state.isLoading) {
@@ -68,6 +76,9 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(text = "Escolher leitura")
+        }
+        TextButton(onClick = onOpenSettings) {
+            Text(text = "Ajustes")
         }
     }
 }
@@ -134,6 +145,7 @@ private fun HomeScreenPreview() {
                     totalChapters = 1189,
                 ),
             onChooseReading = {},
+            onOpenSettings = {},
         )
     }
 }

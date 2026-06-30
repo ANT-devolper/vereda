@@ -27,12 +27,15 @@ import dev.vereda.ui.home.HomeRoute
 import dev.vereda.ui.home.HomeViewModel
 import dev.vereda.ui.reading.ReadingRoute
 import dev.vereda.ui.reading.ReadingViewModel
+import dev.vereda.ui.settings.RemindersRoute
+import dev.vereda.ui.settings.RemindersViewModel
 import dev.vereda.ui.theme.VeredaTheme
 
 private const val ROUTE_HOME = "home"
 private const val ROUTE_BOOKS = "books"
 private const val ROUTE_CHAPTERS = "chapters"
 private const val ROUTE_READING = "reading"
+private const val ROUTE_SETTINGS = "settings"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,6 +121,13 @@ private fun VeredaApp(container: AppContainer) {
                 ReadingRoute(viewModel = readingViewModel, modifier = contentModifier)
             }
 
+            ROUTE_SETTINGS -> {
+                val remindersViewModel: RemindersViewModel =
+                    viewModel(factory = remindersViewModelFactory(container))
+                BackHandler { route = ROUTE_HOME }
+                RemindersRoute(viewModel = remindersViewModel, modifier = contentModifier)
+            }
+
             else -> {
                 HomeRoute(
                     viewModel = homeViewModel,
@@ -125,6 +135,7 @@ private fun VeredaApp(container: AppContainer) {
                         booksToken++
                         route = ROUTE_BOOKS
                     },
+                    onOpenSettings = { route = ROUTE_SETTINGS },
                     modifier = contentModifier,
                 )
             }
@@ -146,6 +157,13 @@ private fun booksViewModelFactory(container: AppContainer): ViewModelProvider.Fa
     viewModelFactory {
         initializer {
             BooksViewModel(progressRepository = container.progressRepository)
+        }
+    }
+
+private fun remindersViewModelFactory(container: AppContainer): ViewModelProvider.Factory =
+    viewModelFactory {
+        initializer {
+            RemindersViewModel(reminderRepository = container.reminderRepository)
         }
     }
 
