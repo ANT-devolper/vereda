@@ -59,15 +59,21 @@ This project follows **test-driven development**:
 - **Streak:** missing a day resets the streak to zero (streak freeze/protection is a future iteration).
 - **Gamification (MVP):** streak + day counter (current streak, best streak, visual "flame") and reading
   progress per book and overall.
-- **No account/login** (offline-first). Onboarding only sets the reminder time and requests notification
-  permission.
+- **Reminders:** the user manually manages **up to 3 daily reminders** (each a time of day, repeated
+  daily); reminders are added, edited and removed in a **Settings** screen. There is no fixed/single
+  reminder. *(Actually scheduling and firing the notifications — AlarmManager + boot reschedule — is a
+  future iteration; for now reminders are only configured and persisted.)*
+- **No account/login** (offline-first). Onboarding (first run) seeds the initial reminders (one suggested
+  time, editable) and requests notification permission.
 
-### Data model (Room)
+### Data model
 
-- `chapter_read` (`bookId`, `chapter`, `firstReadAt`; unique per `bookId+chapter`) — basis for per-book and
-  overall progress (distinct chapters read).
-- `daily_activity` (unique local `date`, `chaptersCompleted`) — basis for the streak (consecutive days with
-  at least one completed chapter); current/best streak is derived from the recorded dates.
+- **Room** `chapter_read` (`bookId`, `chapter`, `firstReadAt`; unique per `bookId+chapter`) — basis for
+  per-book and overall progress (distinct chapters read).
+- **Room** `daily_activity` (unique local `date`, `chaptersCompleted`) — basis for the streak (consecutive
+  days with at least one completed chapter); current/best streak is derived from the recorded dates.
+- **DataStore (Preferences)** for settings: the up-to-3 daily reminder times and the onboarding-completed
+  flag.
 
 ### Out of scope (future iterations)
 
