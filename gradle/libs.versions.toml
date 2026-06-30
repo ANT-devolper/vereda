@@ -9,6 +9,8 @@ room = "2.8.4"
 ksp = "2.2.10-2.0.2"
 robolectric = "4.16.1"
 testCore = "1.7.0"
+# Matches the kotlinx-coroutines-core version resolved transitively (room-ktx).
+coroutines = "1.9.0"
 # core-ktx 1.19.0 requires compileSdk 37 (not yet released); 1.18.0 supports compileSdk 36.
 coreKtx = "1.18.0"
 # lifecycle 2.11.0 requires compileSdk 37 (not yet released); 2.10.0 supports compileSdk 36.
@@ -23,6 +25,8 @@ espressoCore = "3.7.0"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
@@ -41,6 +45,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "testCore" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 
 [plugins]
 # AGP 9 provides built-in Kotlin support, so the kotlin-android plugin is not applied.
