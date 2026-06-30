@@ -64,6 +64,17 @@ class ProgressRepositoryTest {
         }
 
     @Test
+    fun `isChapterRead reflects whether a chapter was marked`() =
+        runBlocking {
+            assertEquals(false, repository.isChapterRead(bookId = 1, chapter = 1))
+
+            repository.markChapterRead(bookId = 1, chapter = 1)
+
+            assertEquals(true, repository.isChapterRead(bookId = 1, chapter = 1))
+            assertEquals(false, repository.isChapterRead(bookId = 1, chapter = 2))
+        }
+
+    @Test
     fun `book progress reports per-book fractions from the catalog`() =
         runBlocking {
             repeat(10) { chapter -> repository.markChapterRead(bookId = 1, chapter = chapter + 1) }

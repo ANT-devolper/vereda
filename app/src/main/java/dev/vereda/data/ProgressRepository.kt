@@ -15,6 +15,12 @@ interface ProgressRepository {
         chapter: Int,
     )
 
+    /** Whether the given chapter has already been marked as read. */
+    suspend fun isChapterRead(
+        bookId: Int,
+        chapter: Int,
+    ): Boolean
+
     suspend fun bookProgress(): List<BookProgress>
 
     suspend fun overallProgress(): OverallProgress
@@ -37,6 +43,11 @@ class DefaultProgressRepository(
     ) {
         dao.markRead(ChapterRead(bookId = bookId, chapter = chapter, firstReadAt = Instant.now(clock)))
     }
+
+    override suspend fun isChapterRead(
+        bookId: Int,
+        chapter: Int,
+    ): Boolean = dao.getFirstReadAt(bookId, chapter) != null
 
     override suspend fun bookProgress(): List<BookProgress> = calculator.bookProgress(catalog.books(), readCountsByBook())
 
