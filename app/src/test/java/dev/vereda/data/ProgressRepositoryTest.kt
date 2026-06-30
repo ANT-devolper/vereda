@@ -33,7 +33,7 @@ class ProgressRepositoryTest {
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, VeredaDatabase::class.java).build()
-        repository = ProgressRepository(dao = database.chapterReadDao(), catalog = catalog)
+        repository = DefaultProgressRepository(dao = database.chapterReadDao(), catalog = catalog)
     }
 
     @After

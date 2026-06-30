@@ -15,7 +15,7 @@ import java.time.ZoneOffset
 class StreakRepositoryTest {
     private val today = LocalDate.of(2026, 6, 30)
     private val dao = FakeDailyActivityDao()
-    private val repository = StreakRepository(dao = dao, clock = fixedClockAt(today))
+    private val repository = DefaultStreakRepository(dao = dao, clock = fixedClockAt(today))
 
     @Test
     fun `recording a completion creates today's row with count one`() =
