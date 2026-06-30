@@ -107,6 +107,8 @@ private class FakeProgressRepository(
         chapter: Int,
     ): Boolean = false
 
+    override suspend fun readChapters(bookId: Int): Set<Int> = emptySet()
+
     override suspend fun bookProgress(): List<BookProgress> = books
 
     override suspend fun overallProgress(): OverallProgress = overall

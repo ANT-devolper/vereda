@@ -64,6 +64,18 @@ class ProgressRepositoryTest {
         }
 
     @Test
+    fun `readChapters returns the set of read chapters for a book`() =
+        runBlocking {
+            repository.markChapterRead(bookId = 1, chapter = 1)
+            repository.markChapterRead(bookId = 1, chapter = 3)
+            repository.markChapterRead(bookId = 2, chapter = 5)
+
+            assertEquals(setOf(1, 3), repository.readChapters(bookId = 1))
+            assertEquals(setOf(5), repository.readChapters(bookId = 2))
+            assertEquals(emptySet<Int>(), repository.readChapters(bookId = 3))
+        }
+
+    @Test
     fun `isChapterRead reflects whether a chapter was marked`() =
         runBlocking {
             assertEquals(false, repository.isChapterRead(bookId = 1, chapter = 1))

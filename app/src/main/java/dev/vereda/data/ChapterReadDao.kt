@@ -24,4 +24,8 @@ interface ChapterReadDao {
     /** Distinct chapters read per book — feeds per-book progress. */
     @Query("SELECT bookId, COUNT(*) AS chaptersRead FROM chapter_read GROUP BY bookId")
     suspend fun readCountsByBook(): List<BookReadCount>
+
+    /** The chapter numbers already read in a given book — feeds the chapter grid. */
+    @Query("SELECT chapter FROM chapter_read WHERE bookId = :bookId")
+    suspend fun readChapters(bookId: Int): List<Int>
 }

@@ -21,6 +21,9 @@ interface ProgressRepository {
         chapter: Int,
     ): Boolean
 
+    /** The set of chapter numbers already read in a book. */
+    suspend fun readChapters(bookId: Int): Set<Int>
+
     suspend fun bookProgress(): List<BookProgress>
 
     suspend fun overallProgress(): OverallProgress
@@ -48,6 +51,8 @@ class DefaultProgressRepository(
         bookId: Int,
         chapter: Int,
     ): Boolean = dao.getFirstReadAt(bookId, chapter) != null
+
+    override suspend fun readChapters(bookId: Int): Set<Int> = dao.readChapters(bookId).toSet()
 
     override suspend fun bookProgress(): List<BookProgress> = calculator.bookProgress(catalog.books(), readCountsByBook())
 
