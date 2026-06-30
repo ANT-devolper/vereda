@@ -2,6 +2,8 @@
 agp = "9.2.1"
 # Must match the Kotlin Gradle plugin bundled by AGP's built-in Kotlin support.
 kotlin = "2.2.10"
+ktlintGradle = "14.2.0"
+ktlint = "1.8.0"
 # core-ktx 1.19.0 requires compileSdk 37 (not yet released); 1.18.0 supports compileSdk 36.
 coreKtx = "1.18.0"
 # lifecycle 2.11.0 requires compileSdk 37 (not yet released); 2.10.0 supports compileSdk 36.
@@ -34,3 +36,4 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 # AGP 9 provides built-in Kotlin support, so the kotlin-android plugin is not applied.
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
