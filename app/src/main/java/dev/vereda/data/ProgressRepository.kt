@@ -10,7 +10,10 @@ import java.time.Instant
 /** Records read chapters and reports reading progress per book and overall. */
 interface ProgressRepository {
     /** Marks a chapter as read. Re-marking is a no-op (the first read is kept). */
-    suspend fun markChapterRead(bookId: Int, chapter: Int)
+    suspend fun markChapterRead(
+        bookId: Int,
+        chapter: Int,
+    )
 
     suspend fun bookProgress(): List<BookProgress>
 
@@ -28,16 +31,16 @@ class DefaultProgressRepository(
     private val calculator: ProgressCalculator = ProgressCalculator(),
     private val clock: Clock = Clock.systemDefaultZone(),
 ) : ProgressRepository {
-    override suspend fun markChapterRead(bookId: Int, chapter: Int) {
+    override suspend fun markChapterRead(
+        bookId: Int,
+        chapter: Int,
+    ) {
         dao.markRead(ChapterRead(bookId = bookId, chapter = chapter, firstReadAt = Instant.now(clock)))
     }
 
-    override suspend fun bookProgress(): List<BookProgress> =
-        calculator.bookProgress(catalog.books(), readCountsByBook())
+    override suspend fun bookProgress(): List<BookProgress> = calculator.bookProgress(catalog.books(), readCountsByBook())
 
-    override suspend fun overallProgress(): OverallProgress =
-        calculator.overallProgress(catalog.books(), readCountsByBook())
+    override suspend fun overallProgress(): OverallProgress = calculator.overallProgress(catalog.books(), readCountsByBook())
 
-    private suspend fun readCountsByBook(): Map<Int, Int> =
-        dao.readCountsByBook().associate { it.bookId to it.chaptersRead }
+    private suspend fun readCountsByBook(): Map<Int, Int> = dao.readCountsByBook().associate { it.bookId to it.chaptersRead }
 }

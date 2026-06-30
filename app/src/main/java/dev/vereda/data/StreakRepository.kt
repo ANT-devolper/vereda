@@ -30,6 +30,5 @@ class DefaultStreakRepository(
         dao.upsert(DailyActivity(date = today, chaptersCompleted = completedSoFar + 1))
     }
 
-    override suspend fun currentStreak(): StreakResult =
-        streakCalculator.calculate(dao.getActivityDates(), LocalDate.now(clock))
+    override suspend fun currentStreak(): StreakResult = streakCalculator.calculate(dao.getActivityDates(), LocalDate.now(clock))
 }
