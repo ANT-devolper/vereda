@@ -10,6 +10,11 @@ ktlint {
     android.set(true)
 }
 
+ksp {
+    // Export Room schemas; the bundled bible.db is generated from the BibleContentDatabase schema.
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 android {
     namespace = "dev.vereda"
     compileSdk = 36
