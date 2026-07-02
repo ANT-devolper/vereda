@@ -145,7 +145,8 @@ Post-MVP features added on `main`:
 
 Permissions `POST_NOTIFICATIONS` + `RECEIVE_BOOT_COMPLETED`; `android:name=".VeredaApplication"`;
 receivers `.reminders.ReminderReceiver` (not exported) and `.reminders.BootReceiver` (exported, with
-the `BOOT_COMPLETED` intent-filter).
+the `BOOT_COMPLETED` intent-filter). App icon `android:icon="@drawable/ic_launcher"` — a single
+(non-adaptive) vector drawable: a white Latin cross centered on a solid black background.
 
 ### Conventions in use
 
