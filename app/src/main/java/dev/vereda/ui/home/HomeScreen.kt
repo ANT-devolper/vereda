@@ -27,6 +27,7 @@ import kotlin.math.roundToInt
 fun HomeRoute(
     viewModel: HomeViewModel,
     onChooseReading: () -> Unit,
+    onViewHistory: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -34,6 +35,7 @@ fun HomeRoute(
     HomeScreen(
         state = state,
         onChooseReading = onChooseReading,
+        onViewHistory = onViewHistory,
         onOpenSettings = onOpenSettings,
         modifier = modifier,
     )
@@ -43,6 +45,7 @@ fun HomeRoute(
 fun HomeScreen(
     state: HomeUiState,
     onChooseReading: () -> Unit,
+    onViewHistory: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -76,6 +79,9 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(text = "Escolher leitura")
+        }
+        TextButton(onClick = onViewHistory) {
+            Text(text = "Histórico")
         }
         TextButton(onClick = onOpenSettings) {
             Text(text = "Ajustes")
@@ -145,6 +151,7 @@ private fun HomeScreenPreview() {
                     totalChapters = 1189,
                 ),
             onChooseReading = {},
+            onViewHistory = {},
             onOpenSettings = {},
         )
     }

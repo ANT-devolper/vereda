@@ -28,4 +28,8 @@ interface ChapterReadDao {
     /** The chapter numbers already read in a given book — feeds the chapter grid. */
     @Query("SELECT chapter FROM chapter_read WHERE bookId = :bookId")
     suspend fun readChapters(bookId: Int): List<Int>
+
+    /** Every read chapter, newest first — feeds the reading history. */
+    @Query("SELECT * FROM chapter_read ORDER BY firstReadAt DESC")
+    suspend fun allReads(): List<ChapterRead>
 }

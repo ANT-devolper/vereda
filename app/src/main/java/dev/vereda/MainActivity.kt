@@ -27,6 +27,8 @@ import dev.vereda.ui.books.BooksRoute
 import dev.vereda.ui.books.BooksViewModel
 import dev.vereda.ui.chapters.ChaptersRoute
 import dev.vereda.ui.chapters.ChaptersViewModel
+import dev.vereda.ui.history.HistoryRoute
+import dev.vereda.ui.history.HistoryViewModel
 import dev.vereda.ui.home.HomeRoute
 import dev.vereda.ui.home.HomeViewModel
 import dev.vereda.ui.onboarding.OnboardingRoute
@@ -42,6 +44,7 @@ private const val ROUTE_HOME = "home"
 private const val ROUTE_BOOKS = "books"
 private const val ROUTE_CHAPTERS = "chapters"
 private const val ROUTE_READING = "reading"
+private const val ROUTE_HISTORY = "history"
 private const val ROUTE_SETTINGS = "settings"
 
 class MainActivity : ComponentActivity() {
@@ -72,6 +75,7 @@ private fun VeredaApp(container: AppContainer) {
     var selectedChapter by rememberSaveable { mutableStateOf(-1) }
     var booksToken by rememberSaveable { mutableStateOf(0) }
     var chaptersToken by rememberSaveable { mutableStateOf(0) }
+    var historyToken by rememberSaveable { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         if (route == null) {
@@ -179,12 +183,24 @@ private fun VeredaApp(container: AppContainer) {
                 RemindersRoute(viewModel = remindersViewModel, onBack = back, modifier = contentModifier)
             }
 
+            ROUTE_HISTORY -> {
+                val historyViewModel: HistoryViewModel =
+                    viewModel(key = "history-$historyToken", factory = historyViewModelFactory(container))
+                val back = { route = ROUTE_HOME }
+                BackHandler { back() }
+                HistoryRoute(viewModel = historyViewModel, onBack = back, modifier = contentModifier)
+            }
+
             else -> {
                 HomeRoute(
                     viewModel = homeViewModel,
                     onChooseReading = {
                         booksToken++
                         route = ROUTE_BOOKS
+                    },
+                    onViewHistory = {
+                        historyToken++
+                        route = ROUTE_HISTORY
                     },
                     onOpenSettings = { route = ROUTE_SETTINGS },
                     modifier = contentModifier,
@@ -208,6 +224,13 @@ private fun booksViewModelFactory(container: AppContainer): ViewModelProvider.Fa
     viewModelFactory {
         initializer {
             BooksViewModel(progressRepository = container.progressRepository)
+        }
+    }
+
+private fun historyViewModelFactory(container: AppContainer): ViewModelProvider.Factory =
+    viewModelFactory {
+        initializer {
+            HistoryViewModel(readingHistoryRepository = container.readingHistoryRepository)
         }
     }
 

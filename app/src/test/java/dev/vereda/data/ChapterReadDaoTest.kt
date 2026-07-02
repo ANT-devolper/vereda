@@ -53,6 +53,22 @@ class ChapterReadDaoTest {
         }
 
     @Test
+    fun `allReads returns every read ordered newest first`() =
+        runBlocking {
+            dao.markRead(ChapterRead(bookId = 1, chapter = 1, firstReadAt = Instant.ofEpochMilli(1000)))
+            dao.markRead(ChapterRead(bookId = 2, chapter = 5, firstReadAt = Instant.ofEpochMilli(3000)))
+            dao.markRead(ChapterRead(bookId = 1, chapter = 2, firstReadAt = Instant.ofEpochMilli(2000)))
+
+            val reads = dao.allReads()
+
+            assertEquals(
+                listOf(Instant.ofEpochMilli(3000), Instant.ofEpochMilli(2000), Instant.ofEpochMilli(1000)),
+                reads.map { it.firstReadAt },
+            )
+            assertEquals(listOf(2 to 5, 1 to 2, 1 to 1), reads.map { it.bookId to it.chapter })
+        }
+
+    @Test
     fun `read counts are grouped by book`() =
         runBlocking {
             dao.markRead(ChapterRead(bookId = 1, chapter = 1, firstReadAt = Instant.ofEpochMilli(1000)))

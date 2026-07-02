@@ -10,8 +10,10 @@ import dev.vereda.data.BibleContentDatabase
 import dev.vereda.data.BibleReadingRepository
 import dev.vereda.data.DefaultBibleReadingRepository
 import dev.vereda.data.DefaultProgressRepository
+import dev.vereda.data.DefaultReadingHistoryRepository
 import dev.vereda.data.DefaultStreakRepository
 import dev.vereda.data.ProgressRepository
+import dev.vereda.data.ReadingHistoryRepository
 import dev.vereda.data.StreakRepository
 import dev.vereda.data.VeredaDatabase
 import dev.vereda.progress.BibleCatalog
@@ -27,6 +29,7 @@ import dev.vereda.settings.ReminderRepository
 interface AppContainer {
     val streakRepository: StreakRepository
     val progressRepository: ProgressRepository
+    val readingHistoryRepository: ReadingHistoryRepository
     val bibleReadingRepository: BibleReadingRepository
     val bibleCatalog: BibleCatalog
     val reminderRepository: ReminderRepository
@@ -69,6 +72,10 @@ class DefaultAppContainer(
 
     override val progressRepository: ProgressRepository by lazy {
         DefaultProgressRepository(dao = database.chapterReadDao(), catalog = catalog)
+    }
+
+    override val readingHistoryRepository: ReadingHistoryRepository by lazy {
+        DefaultReadingHistoryRepository(dao = database.chapterReadDao(), catalog = catalog)
     }
 
     override val bibleReadingRepository: BibleReadingRepository by lazy {
