@@ -113,6 +113,14 @@ Post-MVP features added on `main`:
   real launcher icon via manifest `activity-alias` variants toggled with `PackageManager`
   (`appicon/` package), re-evaluated on app start, on chapter completion, at each boundary (inexact
   alarm) and after boot.
+- **Visual identity / design system:** a fixed-brand dark theme ("serene blue + gold"). The old
+  Android Studio template palette and Material You (dynamic color) are gone — `VeredaTheme` always
+  applies the brand `darkColorScheme` (background `#0F1419`, surface `#182028`, primary blue
+  `#6BA3C7`, gold accent `#F2C14E`, muted `#5A6B78`), custom `Shapes` (rounded) and the `Lora` serif.
+  **Home** is redesigned (Vereda header, streak hero card with a two-tone orange/amber flame vector
+  and a "read today?" line driven by `hasReadToday`, thick rounded progress bar, icon CTA, Histórico/
+  Ajustes as icon+chevron cards). **Reading** uses `Lora` at 18sp/30sp line height with grey
+  superscript verse numbers and icon buttons. Other screens inherit the theme unchanged.
 
 ### Code map (`app/src/main/java/dev/vereda`)
 
@@ -152,10 +160,17 @@ Post-MVP features added on `main`:
   (`NotificationChannelCompat` `CHANNEL_ID = "reading_reminders"`), `ReminderReceiver` (alarm → notify),
   `BootReceiver` (`BOOT_COMPLETED` → reschedule via `goAsync` + coroutine).
 - **`ui/`** — Compose screens, each `…Route(viewModel, …)` + stateless `…Screen(state, …)`: `home`
-  (streak/progress + "Escolher leitura"/"Histórico"/"Ajustes"), `books`, `chapters`, `reading`,
-  `history` (day-grouped `LazyColumn`; `pt-BR` date via `DateTimeFormatter`), `settings` (Reminders;
-  `ReminderListEditor` + Material3 `TimePickerDialog`), `onboarding` (seeds 08:00, requests
-  `POST_NOTIFICATIONS`), `components` (`VeredaTopBar`), `theme`.
+  (streak hero + progress + "Escolher leitura"/"Histórico"/"Ajustes"; `HomeUiState.hasReadToday`
+  drives the "read today?" line), `books`, `chapters`, `reading` (`Lora` body via `ReadingTextStyle`,
+  grey verse numbers), `history` (day-grouped `LazyColumn`; `pt-BR` date via `DateTimeFormatter`),
+  `settings` (Reminders; `ReminderListEditor` + Material3 `TimePickerDialog`), `onboarding` (seeds
+  08:00, requests `POST_NOTIFICATIONS`), `components` (`VeredaTopBar`, with brand `TopAppBarColors`).
+- **`ui/theme/`** — the fixed-brand dark design system: `Color.kt` (brand tokens `Vereda*`),
+  `Theme.kt` (`VeredaTheme` = one `darkColorScheme`, no dynamic color / no light scheme), `Type.kt`
+  (`Lora` variable font instanced per weight via `FontVariation`; `ReadingTextStyle`), `Shape.kt`
+  (rounded `Shapes`), `Dimens.kt` (spacing tokens). Brand icons are custom vector drawables in
+  `res/drawable` (`ic_flame` two-tone, `ic_check`, `ic_menu_book`, `ic_history`, `ic_settings`,
+  `ic_chevron_right`) — no `material-icons-extended`.
 
 ### Manifest
 
@@ -174,11 +189,16 @@ background (black / amber `#FFC107` / orange `#FF9800` / red `#F44336`).
   `MainActivity`.
 - **`java.time`** throughout (enabled via core library desugaring).
 - Avoided extra deps: only the small `material-icons-core` (for the back arrow) is used — **not**
-  `material-icons-extended`; also no Navigation Compose and no Hilt. Note `material-icons-core` is no
-  longer provided transitively by `material3`, so it is declared explicitly (versioned by the Compose
-  BOM). DataStore pinned to **1.1.7** (`minCompileSdk=34`; do **not** bump to 1.3.0-alpha).
+  `material-icons-extended`; all other icons are custom vector drawables. Also no Navigation Compose
+  and no Hilt. Note `material-icons-core` is no longer provided transitively by `material3`, so it is
+  declared explicitly (versioned by the Compose BOM). DataStore pinned to **1.1.7**
+  (`minCompileSdk=34`; do **not** bump to 1.3.0-alpha).
+- **Dark-first, fixed brand:** no Material You / dynamic color and no light color scheme — the app is
+  always the brand dark theme. The pre-Compose window (`themes.xml` → `@color/vereda_background`)
+  matches to avoid a launch flash.
 - Bundled Bible text is **Bíblia Livre (CC BY 4.0)** — only public-domain/freely-licensed text;
-  attribution is in the repo.
+  attribution is in `THIRD_PARTY_LICENSES.md`. The reading font is **Lora** (SIL OFL), bundled at
+  `res/font/lora_variable.ttf`; its license is `LICENSE-Lora-OFL.txt`.
 
 ### Build & test (see also [[build-from-wsl]])
 

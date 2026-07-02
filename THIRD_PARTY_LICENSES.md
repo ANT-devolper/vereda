@@ -16,3 +16,14 @@ Portuguese translation updated from the 1819 João Ferreira de Almeida translati
   (`porbr2018`). The bundled database is generated from the eBible VPL export by `tools/build_bible_db.py`.
 
 No changes were made to the verse text; it is reformatted only into a SQLite database for offline use.
+
+## Reading font — Lora
+
+The reading typeface bundled at `app/src/main/res/font/lora_variable.ttf` is **Lora**, a serif designed
+by Cyreal, used for the Bible reading screen.
+
+- **Copyright:** © 2011 The Lora Project Authors (https://github.com/cyrealtype/Lora-Cyrillic).
+- **License:** [SIL Open Font License 1.1 (OFL)](LICENSE-Lora-OFL.txt).
+
+The bundled file is the unmodified variable-weight font from
+[Google Fonts](https://fonts.google.com/specimen/Lora).

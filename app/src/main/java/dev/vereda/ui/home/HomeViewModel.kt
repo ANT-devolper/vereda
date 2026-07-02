@@ -16,6 +16,7 @@ data class HomeUiState(
     val bestStreak: Int = 0,
     val chaptersRead: Int = 0,
     val totalChapters: Int = 0,
+    val hasReadToday: Boolean = false,
 ) {
     val overallFraction: Float
         get() = if (totalChapters == 0) 0f else chaptersRead.toFloat() / totalChapters
@@ -38,6 +39,7 @@ class HomeViewModel(
         viewModelScope.launch {
             val streak = streakRepository.currentStreak()
             val overall = progressRepository.overallProgress()
+            val readToday = streakRepository.hasReadToday()
             _uiState.value =
                 HomeUiState(
                     isLoading = false,
@@ -45,6 +47,7 @@ class HomeViewModel(
                     bestStreak = streak.best,
                     chaptersRead = overall.chaptersRead,
                     totalChapters = overall.totalChapters,
+                    hasReadToday = readToday,
                 )
         }
     }

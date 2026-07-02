@@ -1,55 +1,37 @@
 package dev.vereda.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme =
+// Vereda is dark-first with a fixed brand identity: no Material You / dynamic color, so the
+// serene-blue + gold palette is consistent on every device.
+private val VeredaColorScheme =
     darkColorScheme(
-        primary = Purple80,
-        secondary = PurpleGrey80,
-        tertiary = Pink80,
-    )
-
-private val LightColorScheme =
-    lightColorScheme(
-        primary = Purple40,
-        secondary = PurpleGrey40,
-        tertiary = Pink40,
+        primary = VeredaBlue,
+        onPrimary = VeredaOnBlue,
+        primaryContainer = VeredaBlue,
+        onPrimaryContainer = VeredaOnBlue,
+        secondary = VeredaGold,
+        onSecondary = VeredaOnGold,
+        tertiary = VeredaGold,
+        onTertiary = VeredaOnGold,
+        background = VeredaBackground,
+        onBackground = VeredaOnBackground,
+        surface = VeredaSurface,
+        onSurface = VeredaOnBackground,
+        surfaceVariant = VeredaSurfaceVariant,
+        onSurfaceVariant = VeredaOnBackground,
+        outline = VeredaOutline,
+        outlineVariant = VeredaSurfaceVariant,
     )
 
 @Composable
-fun VeredaTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+.
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit,
-) {
-    val colorScheme =
-        when {
-            dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                val context = LocalContext.current
-                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-            }
-
-            darkTheme -> {
-                DarkColorScheme
-            }
-
-            else -> {
-                LightColorScheme
-            }
-        }
-
+fun VeredaTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = VeredaColorScheme,
         typography = Typography,
+        shapes = Shapes,
         content = content,
     )
 }

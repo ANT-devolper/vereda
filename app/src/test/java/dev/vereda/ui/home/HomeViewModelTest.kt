@@ -66,6 +66,21 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun `reflects whether the user has already read today`() =
+        runTest {
+            val viewModel =
+                HomeViewModel(
+                    streakRepository =
+                        FakeStreakRepository(StreakResult(current = 1, best = 1), readToday = true),
+                    progressRepository = FakeProgressRepository(OverallProgress(1, 1189)),
+                )
+
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.hasReadToday)
+        }
+
+    @Test
     fun `refresh reloads streak and progress after they change`() =
         runTest {
             val streakRepository = FakeStreakRepository(StreakResult(current = 1, best = 1))
@@ -87,12 +102,13 @@ class HomeViewModelTest {
 
 private class FakeStreakRepository(
     var result: StreakResult,
+    private val readToday: Boolean = false,
 ) : StreakRepository {
     override suspend fun recordChapterCompleted() = Unit
 
     override suspend fun currentStreak(): StreakResult = result
 
-    override suspend fun hasReadToday(): Boolean = false
+    override suspend fun hasReadToday(): Boolean = readToday
 }
 
 private class FakeProgressRepository(
