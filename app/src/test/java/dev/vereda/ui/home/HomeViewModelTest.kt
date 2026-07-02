@@ -91,6 +91,8 @@ private class FakeStreakRepository(
     override suspend fun recordChapterCompleted() = Unit
 
     override suspend fun currentStreak(): StreakResult = result
+
+    override suspend fun hasReadToday(): Boolean = false
 }
 
 private class FakeProgressRepository(

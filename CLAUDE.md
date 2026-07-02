@@ -107,6 +107,12 @@ Post-MVP features added on `main`:
 - **Reading history:** a `history` screen (reachable from Home) lists completed chapters grouped by
   local day, most-recent first, with completion time. Derived from existing `chapter_read` rows — no
   new table/migration (a chapter is markable only once, so `firstReadAt` is its completion instant).
+- **Time-based dynamic launcher icon:** while the user has **not** read today, the launcher icon's
+  background grows more urgent as the day advances — black before 12:00, yellow until 18:00, orange
+  until 20:00, red until midnight; reading today (or a new day) resets it to black. Implemented as a
+  real launcher icon via manifest `activity-alias` variants toggled with `PackageManager`
+  (`appicon/` package), re-evaluated on app start, on chapter completion, at each boundary (inexact
+  alarm) and after boot.
 
 ### Code map (`app/src/main/java/dev/vereda`)
 
@@ -120,7 +126,8 @@ Post-MVP features added on `main`:
   entities, `Instant`/`LocalDate` converters). `BibleContentDatabase` (`bible-content.db` via
   `createFromAsset("bible.db")`) holds verses. Repositories: `StreakRepository`, `ProgressRepository`,
   `ReadingHistoryRepository`, `BibleReadingRepository` (interfaces + `Default…` impls). `ChapterReadDao`
-  also exposes `allReads()` (`ORDER BY firstReadAt DESC`) feeding the history.
+  also exposes `allReads()` (`ORDER BY firstReadAt DESC`) feeding the history; `StreakRepository` also
+  exposes `hasReadToday()` (drives the dynamic launcher icon).
 - **`progress/`** — `BibleCatalog` + `PortugueseBibleCatalog` (book/chapter counts), `ProgressCalculator`.
 - **`streak/`** — `StreakCalculator` (current/best streak derived from `daily_activity` dates).
 - **`history/`** — `ReadingHistory` domain (`HistoryEntry`/`HistoryDay`) + `HistoryCalculator` (pure:
@@ -130,6 +137,15 @@ Post-MVP features added on `main`:
   normalize = distinct/sorted/take 3), `OnboardingRepository`
   (`booleanPreferencesKey("onboarding_completed")`), `ReminderEditing` (pure add/update/remove keeping
   ≤3, no dupes, sorted).
+- **`appicon/`** — time-based dynamic launcher icon. `AppIconRule` (pure: `iconFor(now, readToday)` →
+  `AppIcon` BLACK/YELLOW/ORANGE/RED at round-hour boundaries 12/18/20/midnight; `nextBoundary`).
+  `AppIconApplier` interface + `PackageManagerAppIconApplier` (toggles the `.IconBlack/Yellow/Orange/Red`
+  activity-aliases via `setComponentEnabledSetting`, one enabled at a time, `DONT_KILL_APP`).
+  `AppIconScheduler` interface + `AlarmAppIconScheduler` (single inexact one-shot `AlarmManager.set`
+  at the next boundary, request code 100; avoids `SCHEDULE_EXACT_ALARM`). `AppIconUpdater` coordinator
+  (`refresh()` = rule → apply → schedule). `IconUpdateReceiver` (boundary alarm → `refresh` via
+  `goAsync` + coroutine). Triggered from `VeredaApplication.onCreate`, `ReadingViewModel`'s
+  `onChapterCompleted` hook, and `BootReceiver`.
 - **`reminders/`** — `ReminderScheduling` (pure `nextOccurrence`), `ReminderScheduler` interface +
   `AlarmReminderScheduler` (`setInexactRepeating`, `INTERVAL_DAY`, `RTC_WAKEUP`; per-slot
   PendingIntent request codes 0..2; avoids `SCHEDULE_EXACT_ALARM`), `ReminderNotifier`
@@ -144,9 +160,13 @@ Post-MVP features added on `main`:
 ### Manifest
 
 Permissions `POST_NOTIFICATIONS` + `RECEIVE_BOOT_COMPLETED`; `android:name=".VeredaApplication"`;
-receivers `.reminders.ReminderReceiver` (not exported) and `.reminders.BootReceiver` (exported, with
-the `BOOT_COMPLETED` intent-filter). App icon `android:icon="@drawable/ic_launcher"` — a single
-(non-adaptive) vector drawable: a white Latin cross centered on a solid black background.
+receivers `.reminders.ReminderReceiver` and `.appicon.IconUpdateReceiver` (both not exported) and
+`.reminders.BootReceiver` (exported, with the `BOOT_COMPLETED` intent-filter). The launcher entry is a
+**dynamic icon**: `MainActivity` carries no `LAUNCHER` filter; instead four `activity-alias` entries
+target it — `.IconBlack` (enabled, `@drawable/ic_launcher`), `.IconYellow`, `.IconOrange`, `.IconRed`
+(disabled by default, `@drawable/ic_launcher_{yellow,orange,red}`) — exactly one enabled at runtime.
+Each icon is a single (non-adaptive) vector drawable: a white Latin cross centered on a solid
+background (black / amber `#FFC107` / orange `#FF9800` / red `#F44336`).
 
 ### Conventions in use
 

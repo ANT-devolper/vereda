@@ -12,6 +12,9 @@ interface StreakRepository {
 
     /** Current and best reading streaks. */
     suspend fun currentStreak(): StreakResult
+
+    /** Whether the user has already completed at least one chapter today. */
+    suspend fun hasReadToday(): Boolean
 }
 
 /**
@@ -31,4 +34,6 @@ class DefaultStreakRepository(
     }
 
     override suspend fun currentStreak(): StreakResult = streakCalculator.calculate(dao.getActivityDates(), LocalDate.now(clock))
+
+    override suspend fun hasReadToday(): Boolean = (dao.getByDate(LocalDate.now(clock))?.chaptersCompleted ?: 0) > 0
 }

@@ -36,6 +36,7 @@ class ReadingViewModel(
     private val progressRepository: ProgressRepository,
     private val streakRepository: StreakRepository,
     private val bibleCatalog: BibleCatalog,
+    private val onChapterCompleted: suspend () -> Unit = {},
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ReadingUiState())
     val uiState: StateFlow<ReadingUiState> = _uiState.asStateFlow()
@@ -85,6 +86,7 @@ class ReadingViewModel(
         viewModelScope.launch {
             progressRepository.markChapterRead(bookId, chapter)
             streakRepository.recordChapterCompleted()
+            onChapterCompleted()
             _uiState.value = _uiState.value.copy(isCompleted = true)
         }
     }

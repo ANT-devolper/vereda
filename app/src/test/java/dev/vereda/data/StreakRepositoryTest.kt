@@ -50,6 +50,28 @@ class StreakRepositoryTest {
         }
 
     @Test
+    fun `hasReadToday is false without any activity today`() =
+        runBlocking {
+            assertEquals(false, repository.hasReadToday())
+        }
+
+    @Test
+    fun `hasReadToday is true after recording a completion today`() =
+        runBlocking {
+            repository.recordChapterCompleted()
+
+            assertEquals(true, repository.hasReadToday())
+        }
+
+    @Test
+    fun `hasReadToday is false when only past days have activity`() =
+        runBlocking {
+            dao.upsert(DailyActivity(today.minusDays(1), chaptersCompleted = 1))
+
+            assertEquals(false, repository.hasReadToday())
+        }
+
+    @Test
     fun `streak counts consecutive days up to today`() =
         runBlocking {
             dao.upsert(DailyActivity(today.minusDays(1), chaptersCompleted = 1))

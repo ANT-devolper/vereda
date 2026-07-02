@@ -283,6 +283,7 @@ private fun readingViewModelFactory(
                 progressRepository = container.progressRepository,
                 streakRepository = container.streakRepository,
                 bibleCatalog = container.bibleCatalog,
+                onChapterCompleted = { container.appIconUpdater.refresh() },
             )
         }
     }

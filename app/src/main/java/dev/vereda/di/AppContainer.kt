@@ -6,6 +6,9 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
+import dev.vereda.appicon.AlarmAppIconScheduler
+import dev.vereda.appicon.AppIconUpdater
+import dev.vereda.appicon.PackageManagerAppIconApplier
 import dev.vereda.data.BibleContentDatabase
 import dev.vereda.data.BibleReadingRepository
 import dev.vereda.data.DefaultBibleReadingRepository
@@ -35,6 +38,7 @@ interface AppContainer {
     val reminderRepository: ReminderRepository
     val onboardingRepository: OnboardingRepository
     val reminderScheduler: ReminderScheduler
+    val appIconUpdater: AppIconUpdater
 }
 
 /** Builds the Room-backed repositories used in production. */
@@ -68,6 +72,14 @@ class DefaultAppContainer(
 
     override val streakRepository: StreakRepository by lazy {
         DefaultStreakRepository(dao = database.dailyActivityDao())
+    }
+
+    override val appIconUpdater: AppIconUpdater by lazy {
+        AppIconUpdater(
+            streakRepository = streakRepository,
+            applier = PackageManagerAppIconApplier(context),
+            scheduler = AlarmAppIconScheduler(context),
+        )
     }
 
     override val progressRepository: ProgressRepository by lazy {

@@ -50,6 +50,7 @@ class ReadingViewModelTest {
         progress: FakeProgressRepository = FakeProgressRepository(),
         streak: FakeStreakRepository = FakeStreakRepository(),
         fixture: ReadingChapter = chapter,
+        onChapterCompleted: suspend () -> Unit = {},
     ) = ReadingViewModel(
         bookId = fixture.bookId,
         chapter = fixture.chapter,
@@ -57,6 +58,7 @@ class ReadingViewModelTest {
         progressRepository = progress,
         streakRepository = streak,
         bibleCatalog = PortugueseBibleCatalog(),
+        onChapterCompleted = onChapterCompleted,
     )
 
     @Test
@@ -88,6 +90,32 @@ class ReadingViewModelTest {
             assertTrue(vm.uiState.value.isCompleted)
             assertEquals(listOf(1 to 1), progress.marked)
             assertEquals(1, streak.recordedCount)
+        }
+
+    @Test
+    fun `marking completed runs the completion hook`() =
+        runTest {
+            var hookCalls = 0
+            val vm = viewModel(onChapterCompleted = { hookCalls++ })
+            advanceUntilIdle()
+
+            vm.markCompleted()
+            advanceUntilIdle()
+
+            assertEquals(1, hookCalls)
+        }
+
+    @Test
+    fun `marking an already completed chapter does not run the hook`() =
+        runTest {
+            var hookCalls = 0
+            val vm = viewModel(progress = FakeProgressRepository(alreadyRead = true), onChapterCompleted = { hookCalls++ })
+            advanceUntilIdle()
+
+            vm.markCompleted()
+            advanceUntilIdle()
+
+            assertEquals(0, hookCalls)
         }
 
     @Test
@@ -191,4 +219,6 @@ private class FakeStreakRepository : StreakRepository {
     }
 
     override suspend fun currentStreak(): StreakResult = StreakResult(0, 0)
+
+    override suspend fun hasReadToday(): Boolean = recordedCount > 0
 }
