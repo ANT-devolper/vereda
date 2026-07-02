@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -23,22 +22,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.vereda.ui.components.VeredaTopBar
 import dev.vereda.ui.theme.VeredaTheme
 
 /** Chapter grid for a book: every chapter, marked read/unread, tappable to open the reading screen. */
 @Composable
 fun ChaptersRoute(
     viewModel: ChaptersViewModel,
+    onBack: () -> Unit,
     onChapterClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ChaptersScreen(state = state, onChapterClick = onChapterClick, modifier = modifier)
+    ChaptersScreen(state = state, onBack = onBack, onChapterClick = onChapterClick, modifier = modifier)
 }
 
 @Composable
 fun ChaptersScreen(
     state: ChaptersUiState,
+    onBack: () -> Unit,
     onChapterClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -54,11 +56,7 @@ fun ChaptersScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        Text(
-            text = state.bookName,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(16.dp),
-        )
+        VeredaTopBar(title = state.bookName, onBack = onBack)
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 64.dp),
             contentPadding = PaddingValues(16.dp),
@@ -121,6 +119,7 @@ private fun ChaptersScreenPreview() {
                     chapterCount = 12,
                     readChapters = setOf(1, 2, 5),
                 ),
+            onBack = {},
             onChapterClick = {},
         )
     }

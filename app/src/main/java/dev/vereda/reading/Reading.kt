@@ -13,3 +13,9 @@ data class ReadingChapter(
     val chapter: Int,
     val verses: List<ReadingVerse>,
 )
+
+/** A chapter the user can navigate to next (next chapter of the book, or chapter 1 of the next book). */
+data class ChapterTarget(
+    val bookId: Int,
+    val chapter: Int,
+)

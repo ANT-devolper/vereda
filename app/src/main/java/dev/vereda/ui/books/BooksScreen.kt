@@ -22,22 +22,25 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.vereda.progress.BibleBook
 import dev.vereda.progress.BookProgress
+import dev.vereda.ui.components.VeredaTopBar
 import dev.vereda.ui.theme.VeredaTheme
 
 /** Book list: every book of the Bible with its reading progress, tappable to open its chapters. */
 @Composable
 fun BooksRoute(
     viewModel: BooksViewModel,
+    onBack: () -> Unit,
     onBookClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    BooksScreen(state = state, onBookClick = onBookClick, modifier = modifier)
+    BooksScreen(state = state, onBack = onBack, onBookClick = onBookClick, modifier = modifier)
 }
 
 @Composable
 fun BooksScreen(
     state: BooksUiState,
+    onBack: () -> Unit,
     onBookClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -52,13 +55,16 @@ fun BooksScreen(
         return
     }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        items(state.books, key = { it.book.id }) { book ->
-            BookRow(book = book, onClick = { onBookClick(book.book.id) })
+    Column(modifier = modifier.fillMaxSize()) {
+        VeredaTopBar(title = "Bíblia", onBack = onBack)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(state.books, key = { it.book.id }) { book ->
+                BookRow(book = book, onClick = { onBookClick(book.book.id) })
+            }
         }
     }
 }
@@ -102,6 +108,7 @@ private fun BooksScreenPreview() {
                             BookProgress(BibleBook(2, "Êxodo", 40), chaptersRead = 0),
                         ),
                 ),
+            onBack = {},
             onBookClick = {},
         )
     }

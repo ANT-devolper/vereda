@@ -109,12 +109,14 @@ private fun VeredaApp(container: AppContainer) {
             ROUTE_BOOKS -> {
                 val booksViewModel: BooksViewModel =
                     viewModel(key = "books-$booksToken", factory = booksViewModelFactory(container))
-                BackHandler {
+                val back = {
                     route = ROUTE_HOME
                     homeViewModel.refresh()
                 }
+                BackHandler { back() }
                 BooksRoute(
                     viewModel = booksViewModel,
+                    onBack = back,
                     onBookClick = { bookId ->
                         selectedBookId = bookId
                         chaptersToken++
@@ -130,12 +132,14 @@ private fun VeredaApp(container: AppContainer) {
                         key = "chapters-$selectedBookId-$chaptersToken",
                         factory = chaptersViewModelFactory(container, selectedBookId),
                     )
-                BackHandler {
+                val back = {
                     booksToken++
                     route = ROUTE_BOOKS
                 }
+                BackHandler { back() }
                 ChaptersRoute(
                     viewModel = chaptersViewModel,
+                    onBack = back,
                     onChapterClick = { chapter ->
                         selectedChapter = chapter
                         route = ROUTE_READING
@@ -150,18 +154,29 @@ private fun VeredaApp(container: AppContainer) {
                         key = "reading-$selectedBookId-$selectedChapter",
                         factory = readingViewModelFactory(container, selectedBookId, selectedChapter),
                     )
-                BackHandler {
+                val back = {
                     chaptersToken++
                     route = ROUTE_CHAPTERS
                 }
-                ReadingRoute(viewModel = readingViewModel, modifier = contentModifier)
+                BackHandler { back() }
+                ReadingRoute(
+                    viewModel = readingViewModel,
+                    onBack = back,
+                    onNavigateToChapter = { bookId, chapter ->
+                        selectedBookId = bookId
+                        selectedChapter = chapter
+                        chaptersToken++
+                    },
+                    modifier = contentModifier,
+                )
             }
 
             ROUTE_SETTINGS -> {
                 val remindersViewModel: RemindersViewModel =
                     viewModel(factory = remindersViewModelFactory(container))
-                BackHandler { route = ROUTE_HOME }
-                RemindersRoute(viewModel = remindersViewModel, modifier = contentModifier)
+                val back = { route = ROUTE_HOME }
+                BackHandler { back() }
+                RemindersRoute(viewModel = remindersViewModel, onBack = back, modifier = contentModifier)
             }
 
             else -> {
@@ -244,6 +259,7 @@ private fun readingViewModelFactory(
                 readingRepository = container.bibleReadingRepository,
                 progressRepository = container.progressRepository,
                 streakRepository = container.streakRepository,
+                bibleCatalog = container.bibleCatalog,
             )
         }
     }

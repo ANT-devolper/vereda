@@ -5,6 +5,8 @@ import dev.vereda.data.ProgressRepository
 import dev.vereda.data.StreakRepository
 import dev.vereda.progress.BookProgress
 import dev.vereda.progress.OverallProgress
+import dev.vereda.progress.PortugueseBibleCatalog
+import dev.vereda.reading.ChapterTarget
 import dev.vereda.reading.ReadingChapter
 import dev.vereda.reading.ReadingVerse
 import dev.vereda.streak.StreakResult
@@ -47,12 +49,14 @@ class ReadingViewModelTest {
     private fun viewModel(
         progress: FakeProgressRepository = FakeProgressRepository(),
         streak: FakeStreakRepository = FakeStreakRepository(),
+        fixture: ReadingChapter = chapter,
     ) = ReadingViewModel(
-        bookId = 1,
-        chapter = 1,
-        readingRepository = FakeBibleReadingRepository(chapter),
+        bookId = fixture.bookId,
+        chapter = fixture.chapter,
+        readingRepository = FakeBibleReadingRepository(fixture),
         progressRepository = progress,
         streakRepository = streak,
+        bibleCatalog = PortugueseBibleCatalog(),
     )
 
     @Test
@@ -84,6 +88,39 @@ class ReadingViewModelTest {
             assertTrue(vm.uiState.value.isCompleted)
             assertEquals(listOf(1 to 1), progress.marked)
             assertEquals(1, streak.recordedCount)
+        }
+
+    @Test
+    fun `next chapter points to the following chapter of the same book`() =
+        runTest {
+            val vm = viewModel()
+
+            advanceUntilIdle()
+
+            assertEquals(ChapterTarget(bookId = 1, chapter = 2), vm.uiState.value.nextChapter)
+        }
+
+    @Test
+    fun `next chapter rolls over to chapter 1 of the next book`() =
+        runTest {
+            val lastOfGenesis = chapter.copy(chapter = 50)
+            val vm = viewModel(fixture = lastOfGenesis)
+
+            advanceUntilIdle()
+
+            assertEquals(ChapterTarget(bookId = 2, chapter = 1), vm.uiState.value.nextChapter)
+        }
+
+    @Test
+    fun `next chapter is null at the last chapter of the last book`() =
+        runTest {
+            val lastOfBible =
+                ReadingChapter(bookId = 66, bookName = "Apocalipse", chapter = 22, verses = chapter.verses)
+            val vm = viewModel(fixture = lastOfBible)
+
+            advanceUntilIdle()
+
+            assertEquals(null, vm.uiState.value.nextChapter)
         }
 
     @Test
