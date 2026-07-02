@@ -33,8 +33,16 @@ This project follows **test-driven development**:
    to improve the code while keeping the suite green.
 3. **Bugs become regression tests** — every fixed bug starts with a test that reproduces it, so it can't
    silently return.
-4. **Definition of done** — when an implementation is finished: run the full test suite (all green) → go
-   through **code review** → run the **linter** before completing or merging.
+4. **Definition of done** — when an implementation is finished, in this order:
+   1. Run the full test suite (all green).
+   2. Go through **code review**.
+   3. Run the **linter** (ktlint).
+   4. **Build a debug APK** (`./gradlew assembleDebug`) for the user to manually test on Android
+      (APK at `app/build/outputs/apk/debug/app-debug.apk`).
+   5. **Wait for the user's approval** after manual testing before continuing.
+   6. Once approved, **update `CLAUDE.md`** — its "Current state" and code map/history — to reflect
+      the change.
+   7. **Commit** the work (Conventional Commits, atomic).
 
 ## Commits
 
@@ -86,20 +94,38 @@ The MVP is implemented end-to-end and navigable: **Onboarding → Home → Books
 reschedule). All work is committed on `main`; the latest debug APK builds and installs. The test suite
 (JUnit + Robolectric + coroutines-test) is green and ktlint is clean.
 
+Post-MVP features added on `main`:
+
+- **Top-bar back navigation:** a shared `ui/components/VeredaTopBar` (title + standard Android back
+  arrow `Icons.AutoMirrored.Filled.ArrowBack`) wires a back action into Books, Chapters, Reading and
+  Reminders; `MainActivity` hoists a `val back = { … }` per screen shared by the `BackHandler` and the
+  top bar's `onBack`.
+- **Next-chapter reading flow:** after "Mark as completed" the Reading screen shows a **"Próximo
+  capítulo"** button. `ReadingViewModel.nextChapterAfter` (uses `BibleCatalog`) resolves the next
+  chapter of the book, or chapter 1 of the next book, or `null` at the end of the last book
+  (`ChapterTarget` in `reading/Reading.kt`); scroll resets per chapter via `key(bookId, chapter)`.
+- **Reading history:** a `history` screen (reachable from Home) lists completed chapters grouped by
+  local day, most-recent first, with completion time. Derived from existing `chapter_read` rows — no
+  new table/migration (a chapter is markable only once, so `firstReadAt` is its completion instant).
+
 ### Code map (`app/src/main/java/dev/vereda`)
 
 - **Entry / DI / nav:** `VeredaApplication` (holds `DefaultAppContainer`), `MainActivity`
   (`VeredaApp(container)` — a manual `rememberSaveable` route state machine: `ROUTE_ONBOARDING/HOME/
-  BOOKS/CHAPTERS/READING/SETTINGS`, with `BackHandler`s and per-screen reload tokens; **Navigation
-  Compose deliberately deferred**). `di/AppContainer` — interface + `DefaultAppContainer` wiring Room,
-  the shared DataStore and the scheduler.
+  BOOKS/CHAPTERS/READING/HISTORY/SETTINGS`, with `BackHandler`s and per-screen reload tokens
+  (`booksToken`/`chaptersToken`/`historyToken`); **Navigation Compose deliberately deferred**).
+  `di/AppContainer` — interface + `DefaultAppContainer` wiring Room, the shared DataStore and the
+  scheduler.
 - **`data/`** — Room. `VeredaDatabase` (`vereda.db`) holds `chapter_read` + `daily_activity` (DAOs,
   entities, `Instant`/`LocalDate` converters). `BibleContentDatabase` (`bible-content.db` via
   `createFromAsset("bible.db")`) holds verses. Repositories: `StreakRepository`, `ProgressRepository`,
-  `BibleReadingRepository` (interfaces + `Default…` impls).
+  `ReadingHistoryRepository`, `BibleReadingRepository` (interfaces + `Default…` impls). `ChapterReadDao`
+  also exposes `allReads()` (`ORDER BY firstReadAt DESC`) feeding the history.
 - **`progress/`** — `BibleCatalog` + `PortugueseBibleCatalog` (book/chapter counts), `ProgressCalculator`.
 - **`streak/`** — `StreakCalculator` (current/best streak derived from `daily_activity` dates).
-- **`reading/`** — `Reading` domain (scroll-to-end completion model).
+- **`history/`** — `ReadingHistory` domain (`HistoryEntry`/`HistoryDay`) + `HistoryCalculator` (pure:
+  groups `chapter_read` rows by local day via an injected `ZoneId`, days desc / entries by time asc).
+- **`reading/`** — `Reading` domain (scroll-to-end completion model, `ChapterTarget` for next-chapter).
 - **`settings/`** — `ReminderRepository` (`stringSetPreferencesKey("reminders")`, `MAX_REMINDERS = 3`,
   normalize = distinct/sorted/take 3), `OnboardingRepository`
   (`booleanPreferencesKey("onboarding_completed")`), `ReminderEditing` (pure add/update/remove keeping
@@ -109,9 +135,11 @@ reschedule). All work is committed on `main`; the latest debug APK builds and in
   PendingIntent request codes 0..2; avoids `SCHEDULE_EXACT_ALARM`), `ReminderNotifier`
   (`NotificationChannelCompat` `CHANNEL_ID = "reading_reminders"`), `ReminderReceiver` (alarm → notify),
   `BootReceiver` (`BOOT_COMPLETED` → reschedule via `goAsync` + coroutine).
-- **`ui/`** — Compose screens, each `…Route(viewModel, …)` + stateless `…Screen(state, …)`: `home`,
-  `books`, `chapters`, `reading`, `settings` (Reminders; `ReminderListEditor` + Material3
-  `TimePickerDialog`), `onboarding` (seeds 08:00, requests `POST_NOTIFICATIONS`), `theme`.
+- **`ui/`** — Compose screens, each `…Route(viewModel, …)` + stateless `…Screen(state, …)`: `home`
+  (streak/progress + "Escolher leitura"/"Histórico"/"Ajustes"), `books`, `chapters`, `reading`,
+  `history` (day-grouped `LazyColumn`; `pt-BR` date via `DateTimeFormatter`), `settings` (Reminders;
+  `ReminderListEditor` + Material3 `TimePickerDialog`), `onboarding` (seeds 08:00, requests
+  `POST_NOTIFICATIONS`), `components` (`VeredaTopBar`), `theme`.
 
 ### Manifest
 
@@ -124,8 +152,10 @@ the `BOOT_COMPLETED` intent-filter).
 - **Manual DI** via `AppContainer`; ViewModels built with `viewModelFactory { initializer { … } }` in
   `MainActivity`.
 - **`java.time`** throughout (enabled via core library desugaring).
-- Avoided extra deps: no `material-icons-extended` (text buttons instead), no Navigation Compose, no
-  Hilt. DataStore pinned to **1.1.7** (`minCompileSdk=34`; do **not** bump to 1.3.0-alpha).
+- Avoided extra deps: only the small `material-icons-core` (for the back arrow) is used — **not**
+  `material-icons-extended`; also no Navigation Compose and no Hilt. Note `material-icons-core` is no
+  longer provided transitively by `material3`, so it is declared explicitly (versioned by the Compose
+  BOM). DataStore pinned to **1.1.7** (`minCompileSdk=34`; do **not** bump to 1.3.0-alpha).
 - Bundled Bible text is **Bíblia Livre (CC BY 4.0)** — only public-domain/freely-licensed text;
   attribution is in the repo.
 
