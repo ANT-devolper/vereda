@@ -15,6 +15,9 @@ class VeredaApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = DefaultAppContainer(this)
+        // Track foreground/background so the launcher icon is only switched while in the background
+        // (switching it in the foreground finishes the current task on Android 16 — the app "closes").
+        registerActivityLifecycleCallbacks(container.foregroundTracker)
         // Re-evaluate the launcher icon color on every process start (day rolled over, boundary passed…).
         CoroutineScope(Dispatchers.Default).launch {
             container.appIconUpdater.refresh()

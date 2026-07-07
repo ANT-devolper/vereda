@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import dev.vereda.appicon.AlarmAppIconScheduler
 import dev.vereda.appicon.AppIconUpdater
+import dev.vereda.appicon.ForegroundStateTracker
 import dev.vereda.appicon.PackageManagerAppIconApplier
 import dev.vereda.data.BibleContentDatabase
 import dev.vereda.data.BibleReadingRepository
@@ -39,6 +40,7 @@ interface AppContainer {
     val onboardingRepository: OnboardingRepository
     val reminderScheduler: ReminderScheduler
     val appIconUpdater: AppIconUpdater
+    val foregroundTracker: ForegroundStateTracker
 }
 
 /** Builds the Room-backed repositories used in production. */
@@ -74,11 +76,17 @@ class DefaultAppContainer(
         DefaultStreakRepository(dao = database.dailyActivityDao())
     }
 
+    // The lambda resolves appIconUpdater lazily at invocation time, so there is no init cycle.
+    override val foregroundTracker: ForegroundStateTracker by lazy {
+        ForegroundStateTracker(onEnterBackground = { appIconUpdater.applyPending() })
+    }
+
     override val appIconUpdater: AppIconUpdater by lazy {
         AppIconUpdater(
             streakRepository = streakRepository,
             applier = PackageManagerAppIconApplier(context),
             scheduler = AlarmAppIconScheduler(context),
+            foregroundState = foregroundTracker,
         )
     }
 
