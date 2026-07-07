@@ -112,7 +112,10 @@ Post-MVP features added on `main`:
   until 20:00, red until midnight; reading today (or a new day) resets it to black. Implemented as a
   real launcher icon via manifest `activity-alias` variants toggled with `PackageManager`
   (`appicon/` package), re-evaluated on app start, on chapter completion, at each boundary (inexact
-  alarm) and after boot.
+  alarm) and after boot. **The alias switch only runs while the app is in the background** —
+  disabling the alias that roots the foreground task finishes it on Android 16 (the app "closes"),
+  which `DONT_KILL_APP` does not prevent; a change needed in the foreground is deferred and applied
+  when the app next backgrounds (see the `appicon` code map).
 - **Visual identity / design system:** a fixed-brand dark theme ("serene blue + gold"). The old
   Android Studio template palette and Material You (dynamic color) are gone — `VeredaTheme` always
   applies the brand `darkColorScheme` (background `#0F1419`, surface `#182028`, primary blue
@@ -151,9 +154,18 @@ Post-MVP features added on `main`:
   activity-aliases via `setComponentEnabledSetting`, one enabled at a time, `DONT_KILL_APP`).
   `AppIconScheduler` interface + `AlarmAppIconScheduler` (single inexact one-shot `AlarmManager.set`
   at the next boundary, request code 100; avoids `SCHEDULE_EXACT_ALARM`). `AppIconUpdater` coordinator
-  (`refresh()` = rule → apply → schedule). `IconUpdateReceiver` (boundary alarm → `refresh` via
-  `goAsync` + coroutine). Triggered from `VeredaApplication.onCreate`, `ReadingViewModel`'s
-  `onChapterCompleted` hook, and `BootReceiver`.
+  (`refresh()` = rule → apply-if-background-else-defer → schedule). `IconUpdateReceiver` (boundary
+  alarm → `refresh` via `goAsync` + coroutine). Triggered from `VeredaApplication.onCreate`,
+  `ReadingViewModel`'s `onChapterCompleted` hook, and `BootReceiver`.
+  **Foreground-safe switching:** switching an alias in the foreground finishes the current task on
+  Android 16 (the app closes; `DONT_KILL_APP` only spares the process, not the activities), so the
+  switch is deferred while foreground. `AppForegroundState` (interface) is backed by
+  `ForegroundStateTracker` (`Application.ActivityLifecycleCallbacks`, registered in
+  `VeredaApplication.onCreate`) which forwards start/stop to the pure `ForegroundCounter` (started
+  count → `isInForeground`, fires `onEnterBackground` when it hits 0). `AppIconUpdater.refresh()`
+  applies immediately when backgrounded, else stashes `pendingIcon`; `applyPending()` (wired to the
+  tracker's `onEnterBackground` in `AppContainer`) applies it once the app backgrounds — exactly when
+  the launcher icon is visible.
 - **`reminders/`** — `ReminderScheduling` (pure `nextOccurrence`), `ReminderScheduler` interface +
   `AlarmReminderScheduler` (`setInexactRepeating`, `INTERVAL_DAY`, `RTC_WAKEUP`; per-slot
   PendingIntent request codes 0..2; avoids `SCHEDULE_EXACT_ALARM`), `ReminderNotifier`
